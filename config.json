@@ -1,0 +1,83 @@
+{
+  "default_local_upload_path": "C:\\Users\\tkhum\\uploader_content",
+  "profiles": {
+    "example_http_site": {
+      "name": "example_http_site",
+      "url": "https://httpbin.org/post",
+      "upload_method": "http_post",
+      "credentials": {
+        "type": "basic_auth",
+        "username": "testuser",
+        "password": "testpassword123",
+        "api_key_name": null,
+        "api_key_value": null
+      },
+      "remote_path": "/uploads/"
+    },
+    "another_api_site": {
+      "name": "another_api_site",
+      "url": "https://api.anothersite.com/v1/upload",
+      "upload_method": "http_post",
+      "credentials": {
+        "type": "api_key",
+        "username": null,
+        "password": null,
+        "api_key_name": "X-API-KEY",
+        "api_key_value": "your-secret-api-key-123"
+      },
+      "remote_path": "/files/"
+    },
+    "anonymous_ftp_site": {
+      "name": "anonymous_ftp_site",
+      "url": "ftp://ftp.example.com/pub",
+      "upload_method": "ftp",
+      "credentials": {
+        "type": "none",
+        "username": null,
+        "password": null,
+        "api_key_name": null,
+        "api_key_value": null
+      },
+      "remote_path": "/"
+    },
+    "WEBSITE_NAME": {
+      "name": "WEBSITE_NAME",
+      "url": "UPLOAD_URL",
+      "upload_method": "http_post",
+      "credentials": {
+        "type": "none",
+        "username": null,
+        "password": null,
+        "api_key_name": null,
+        "api_key_value": null
+      },
+      "remote_path": "/"
+    },
+    "tkweb-media": {
+      "name": "tkweb-media",
+      "url": "https://tk-web-studio-backend.vercel.app/api/create-upload-url",
+      "upload_method": "http_post",
+      "credentials": {
+        "type": "none",
+        "username": null,
+        "password": null,
+        "api_key_name": null,
+        "api_key_value": null
+      },
+      "remote_path": "/"
+    },
+    "tkweb-media-fixed": {
+      "name": "tkweb-media-fixed",
+      "url": "https://tk-web-studio-backend.vercel.app",
+      "upload_method": "http_post",
+      "credentials": {
+        "type": "none",
+        "username": null,
+        "password": null,
+        "api_key_name": null,
+        "api_key_value": null
+      },
+      "remote_path": "/api/create-upload-url"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*/__pycache__/
+*.pyc
+build/
+dist/
+test-upload.pdf
+test-upload.txt
+create_test_pdf.py

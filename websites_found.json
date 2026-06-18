@@ -1,0 +1,92 @@
+[
+  {
+    "website_name": "Sammy's sweet",
+    "path": "C:\\Users\\tkhum\\OneDrive\\Desktop\\Sammy's sweet",
+    "stack": "Node / Express",
+    "has_api": true,
+    "upload_endpoint_files": [],
+    "deployment": "Git",
+    "recommended_integration": "Add protected /api/upload endpoint."
+  },
+  {
+    "website_name": "tk-web-studio",
+    "path": "C:\\Users\\tkhum\\OneDrive\\Desktop\\tk-web-studio",
+    "stack": "Static HTML",
+    "has_api": false,
+    "upload_endpoint_files": [
+      "C:\\Users\\tkhum\\OneDrive\\Desktop\\tk-web-studio\\script.js",
+      "C:\\Users\\tkhum\\OneDrive\\Desktop\\tk-web-studio\\api\\create-upload-url.js",
+      "C:\\Users\\tkhum\\OneDrive\\Desktop\\tk-web-studio\\ascertain-visuals-shine\\api\\create-upload-url.js",
+      "C:\\Users\\tkhum\\OneDrive\\Desktop\\tk-web-studio\\ascertain-visuals-shine\\src\\components\\ContactForm.tsx"
+    ],
+    "deployment": "Git",
+    "recommended_integration": "Use GitHub/Vercel content update workflow or add backend."
+  },
+  {
+    "website_name": "tk-web-studio-backend",
+    "path": "C:\\Users\\tkhum\\OneDrive\\Desktop\\tk-web-studio-backend",
+    "stack": "Static HTML",
+    "has_api": false,
+    "upload_endpoint_files": [
+      "C:\\Users\\tkhum\\OneDrive\\Desktop\\tk-web-studio-backend\\script.js",
+      "C:\\Users\\tkhum\\OneDrive\\Desktop\\tk-web-studio-backend\\api\\create-upload-url.js",
+      "C:\\Users\\tkhum\\OneDrive\\Desktop\\tk-web-studio-backend\\api\\submit-lead.js"
+    ],
+    "deployment": "Git",
+    "recommended_integration": "Use GitHub/Vercel content update workflow or add backend."
+  },
+  {
+    "website_name": "vision-executive-demo",
+    "path": "C:\\Users\\tkhum\\OneDrive\\Desktop\\vision-executive-demo",
+    "stack": "Static HTML",
+    "has_api": false,
+    "upload_endpoint_files": [],
+    "deployment": "Unknown",
+    "recommended_integration": "Use GitHub/Vercel content update workflow or add backend."
+  },
+  {
+    "website_name": "ascertain-visuals-shine-main",
+    "path": "C:\\Users\\tkhum\\Downloads\\ascertain-visuals-shine-main\\ascertain-visuals-shine-main",
+    "stack": "Next.js",
+    "has_api": false,
+    "upload_endpoint_files": [],
+    "deployment": "Unknown",
+    "recommended_integration": "Add protected /api/upload endpoint."
+  },
+  {
+    "website_name": "cndies collection",
+    "path": "C:\\Users\\tkhum\\Downloads\\cndies iphones updated\\cndies collection",
+    "stack": "Static HTML",
+    "has_api": false,
+    "upload_endpoint_files": [],
+    "deployment": "Unknown",
+    "recommended_integration": "Use GitHub/Vercel content update workflow or add backend."
+  },
+  {
+    "website_name": "cndies-sparkle-collection-main",
+    "path": "C:\\Users\\tkhum\\Downloads\\cndies-sparkle-collection-main\\cndies-sparkle-collection-main",
+    "stack": "Next.js",
+    "has_api": false,
+    "upload_endpoint_files": [],
+    "deployment": "Unknown",
+    "recommended_integration": "Add protected /api/upload endpoint."
+  },
+  {
+    "website_name": "pink-gold-iphones-main",
+    "path": "C:\\Users\\tkhum\\Downloads\\pink-gold-iphones-main\\pink-gold-iphones-main",
+    "stack": "Next.js",
+    "has_api": false,
+    "upload_endpoint_files": [],
+    "deployment": "Unknown",
+    "recommended_integration": "Add protected /api/upload endpoint."
+  },
+  {
+    "website_name": "nexuscore-tech",
+    "path": "C:\\Users\\tkhum\\Downloads\\WEB poe Part3 ST10477675 Thabiso Khumalo\\WEB poe Part3 ST10477675 Thabiso Khumalo\\WEB poe part 3 ST10477675 Thabiso khumalo\\nexuscore-tech",
+    "stack": "Static HTML",
+    "has_api": false,
+    "upload_endpoint_files": [],
+    "deployment": "Unknown",
+    "recommended_integration": "Use GitHub/Vercel content update workflow or add backend."
+  }
+]
