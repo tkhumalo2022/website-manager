@@ -1,0 +1,22 @@
+[
+  {
+    "website_name": "portfolio-site",
+    "path": "C:\\Users\\developer\\Desktop\\portfolio-site",
+    "stack": "Next.js",
+    "has_api": true,
+    "upload_endpoint_files": [
+      "C:\\Users\\developer\\Desktop\\portfolio-site\\app\\api\\upload\\route.ts"
+    ],
+    "deployment": "Git",
+    "recommended_integration": "Existing API likely available. Inspect endpoint files."
+  },
+  {
+    "website_name": "company-site",
+    "path": "C:\\Users\\developer\\Desktop\\company-site",
+    "stack": "Static HTML",
+    "has_api": false,
+    "upload_endpoint_files": [],
+    "deployment": "Git",
+    "recommended_integration": "Use GitHub/Vercel content update workflow or add backend."
+  }
+]
