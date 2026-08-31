@@ -1,14 +1,27 @@
-﻿import os
+import os
 import json
 from pathlib import Path
 from datetime import datetime
 
-SCAN_PATHS = [
-    r"C:\Users\tkhum\OneDrive\Desktop",
-    r"C:\Users\tkhum\Desktop",
-    r"C:\Users\tkhum\Downloads",
-    r"C:\Users\tkhum\Desktop\JarvisProjects",
-]
+
+def default_scan_paths():
+    """Return portable default locations without hard-coding a developer machine."""
+    home = Path.home()
+    candidates = [
+        home / "Desktop",
+        home / "Downloads",
+        home / "OneDrive" / "Desktop",
+        home / "Desktop" / "JarvisProjects",
+    ]
+
+    custom_paths = os.environ.get("WEBSITE_MANAGER_SCAN_PATHS", "").strip()
+    if custom_paths:
+        return [Path(value).expanduser() for value in custom_paths.split(os.pathsep) if value.strip()]
+
+    return candidates
+
+
+SCAN_PATHS = default_scan_paths()
 
 IGNORE_DIRS = {
     "node_modules", ".git", "__pycache__", ".next", "dist", "build",
@@ -30,11 +43,13 @@ API_MARKERS = [
     "controllers"
 ]
 
+
 def safe_read(path):
     try:
         return Path(path).read_text(encoding="utf-8", errors="ignore")
     except Exception:
         return ""
+
 
 def detect_stack(folder):
     files = {p.name.lower() for p in folder.iterdir() if p.is_file()}
@@ -59,6 +74,7 @@ def detect_stack(folder):
         return "Frontend Web App"
     return "Unknown Web Project"
 
+
 def has_api(folder):
     checks = [
         folder / "app" / "api",
@@ -69,6 +85,7 @@ def has_api(folder):
         folder / "app.js"
     ]
     return any(p.exists() for p in checks)
+
 
 def find_upload_endpoint(folder):
     patterns = ["upload", "/api/upload", "app.post", "router.post"]
@@ -92,6 +109,7 @@ def find_upload_endpoint(folder):
 
     return found[:5]
 
+
 def detect_deployment(folder):
     deployments = []
     if (folder / "vercel.json").exists():
@@ -107,6 +125,7 @@ def detect_deployment(folder):
         if "netlify" in text:
             deployments.append("Netlify clue")
     return ", ".join(deployments) if deployments else "Unknown"
+
 
 def is_website(folder):
     try:
@@ -124,6 +143,7 @@ def is_website(folder):
         return True
 
     return False
+
 
 def scan():
     results = []
@@ -181,6 +201,7 @@ def scan():
 
     return results
 
+
 def write_reports(results):
     with open("websites_found.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
@@ -203,6 +224,7 @@ def write_reports(results):
 
     with open("WEBSITE_SCAN_REPORT.md", "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
+
 
 if __name__ == "__main__":
     found = scan()

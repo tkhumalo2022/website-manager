@@ -7,3 +7,8 @@ dist/
 test-upload.pdf
 test-upload.txt
 create_test_pdf.py
+
+# Local machine configuration and generated scan output
+config.json
+websites_found.json
+WEBSITE_SCAN_REPORT.md

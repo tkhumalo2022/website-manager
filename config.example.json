@@ -1,0 +1,31 @@
+{
+  "default_local_upload_path": "./uploader_content",
+  "profiles": {
+    "example_http_site": {
+      "name": "example_http_site",
+      "url": "https://httpbin.org/post",
+      "upload_method": "http_post",
+      "credentials": {
+        "type": "basic_auth",
+        "username": "example-user",
+        "password": "example-password",
+        "api_key_name": null,
+        "api_key_value": null
+      },
+      "remote_path": "/uploads/"
+    },
+    "example_api_site": {
+      "name": "example_api_site",
+      "url": "https://api.example.com/v1/upload",
+      "upload_method": "http_post",
+      "credentials": {
+        "type": "api_key",
+        "username": null,
+        "password": null,
+        "api_key_name": "X-API-KEY",
+        "api_key_value": "replace-with-local-value"
+      },
+      "remote_path": "/files/"
+    }
+  }
+}
