@@ -1,116 +1,87 @@
-import os
 import json
-from pathlib import Path
+import os
 from datetime import datetime
-
-
-def default_scan_paths():
-    """Return portable default locations without hard-coding a developer machine."""
-    home = Path.home()
-    candidates = [
-        home / "Desktop",
-        home / "Downloads",
-        home / "OneDrive" / "Desktop",
-        home / "Desktop" / "JarvisProjects",
-    ]
-
-    custom_paths = os.environ.get("WEBSITE_MANAGER_SCAN_PATHS", "").strip()
-    if custom_paths:
-        return [Path(value).expanduser() for value in custom_paths.split(os.pathsep) if value.strip()]
-
-    return candidates
-
-
-SCAN_PATHS = default_scan_paths()
+from pathlib import Path
+from typing import Iterable, List, Optional
 
 IGNORE_DIRS = {
     "node_modules", ".git", "__pycache__", ".next", "dist", "build",
-    ".vercel", ".netlify", "venv", ".venv", "env"
+    ".vercel", ".netlify", "venv", ".venv", "env", ".idea", ".gradle"
 }
-
 WEBSITE_MARKERS = {
     "package.json", "index.html", "vite.config.js", "vite.config.ts",
     "next.config.js", "next.config.mjs", "vercel.json", "netlify.toml",
-    "tailwind.config.js", "tailwind.config.ts"
+    "tailwind.config.js", "tailwind.config.ts", "astro.config.mjs"
 }
 
-API_MARKERS = [
-    "app/api",
-    "pages/api",
-    "server.js",
-    "app.js",
-    "routes",
-    "controllers"
-]
+
+def default_scan_paths() -> List[Path]:
+    custom = os.getenv("WEBSITE_MANAGER_SCAN_PATHS", "").strip()
+    if custom:
+        return [Path(value).expanduser() for value in custom.split(os.pathsep) if value.strip()]
+    home = Path.home()
+    return [home / "Desktop", home / "Downloads", home / "OneDrive" / "Desktop"]
 
 
-def safe_read(path):
+def safe_read(path: Path) -> str:
     try:
-        return Path(path).read_text(encoding="utf-8", errors="ignore")
-    except Exception:
+        return path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
         return ""
 
 
-def detect_stack(folder):
+def detect_stack(folder: Path) -> str:
     files = {p.name.lower() for p in folder.iterdir() if p.is_file()}
     dirs = {p.name.lower() for p in folder.iterdir() if p.is_dir()}
+    package_text = safe_read(folder / "package.json").lower()
 
-    package_json = folder / "package.json"
-    package_text = safe_read(package_json).lower() if package_json.exists() else ""
-
-    if "next" in package_text or "next.config.js" in files or "next.config.mjs" in files:
+    if "next" in package_text or {"next.config.js", "next.config.mjs"} & files:
         return "Next.js"
-    if "vite" in package_text or "vite.config.js" in files or "vite.config.ts" in files:
+    if "astro" in package_text or "astro.config.mjs" in files:
+        return "Astro"
+    if "vite" in package_text or {"vite.config.js", "vite.config.ts"} & files:
         return "Vite / React"
     if "react" in package_text:
         return "React"
-    if "express" in package_text or "server.js" in files or "app.js" in files:
+    if "express" in package_text or {"server.js", "app.js"} & files:
         return "Node / Express"
     if "index.html" in files:
         return "Static HTML"
-    if "streamlit" in package_text:
-        return "Python / Streamlit"
     if "src" in dirs and "public" in dirs:
         return "Frontend Web App"
     return "Unknown Web Project"
 
 
-def has_api(folder):
+def has_api(folder: Path) -> bool:
     checks = [
-        folder / "app" / "api",
-        folder / "pages" / "api",
-        folder / "routes",
-        folder / "controllers",
-        folder / "server.js",
-        folder / "app.js"
+        folder / "app" / "api", folder / "pages" / "api", folder / "api",
+        folder / "routes", folder / "controllers", folder / "server.js", folder / "app.js"
     ]
-    return any(p.exists() for p in checks)
+    return any(path.exists() for path in checks)
 
 
-def find_upload_endpoint(folder):
-    patterns = ["upload", "/api/upload", "app.post", "router.post"]
-    found = []
-
+def find_upload_endpoint(folder: Path) -> List[str]:
+    patterns = ("upload", "signedurl", "signed_url", "create-upload")
+    found: List[str] = []
     for root, dirs, files in os.walk(folder):
-        dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
-        depth = len(Path(root).relative_to(folder).parts)
-        if depth > 4:
+        dirs[:] = [directory for directory in dirs if directory not in IGNORE_DIRS]
+        root_path = Path(root)
+        if len(root_path.relative_to(folder).parts) > 4:
             dirs[:] = []
             continue
+        for filename in files:
+            if not filename.endswith((".js", ".mjs", ".ts", ".jsx", ".tsx", ".py")):
+                continue
+            path = root_path / filename
+            text = safe_read(path).lower()
+            if any(pattern in text for pattern in patterns):
+                found.append(str(path))
+                if len(found) >= 8:
+                    return found
+    return found
 
-        for file in files:
-            if file.endswith((".js", ".ts", ".jsx", ".tsx", ".py", ".json")):
-                path = Path(root) / file
-                text = safe_read(path).lower()
-                for pattern in patterns:
-                    if pattern in text:
-                        found.append(str(path))
-                        break
 
-    return found[:5]
-
-
-def detect_deployment(folder):
+def detect_deployment(folder: Path) -> str:
     deployments = []
     if (folder / "vercel.json").exists():
         deployments.append("Vercel")
@@ -118,124 +89,89 @@ def detect_deployment(folder):
         deployments.append("Netlify")
     if (folder / ".git").exists():
         deployments.append("Git")
-    if (folder / "package.json").exists():
-        text = safe_read(folder / "package.json").lower()
-        if "vercel" in text:
-            deployments.append("Vercel clue")
-        if "netlify" in text:
-            deployments.append("Netlify clue")
     return ", ".join(deployments) if deployments else "Unknown"
 
 
-def is_website(folder):
+def is_website(folder: Path) -> bool:
     try:
-        names = {p.name for p in folder.iterdir()}
-    except Exception:
+        names = {path.name for path in folder.iterdir()}
+    except OSError:
         return False
-
-    if WEBSITE_MARKERS.intersection(names):
-        return True
-
-    if "src" in names and "public" in names:
-        return True
-
-    if "app" in names or "pages" in names:
-        return True
-
-    return False
+    return bool(WEBSITE_MARKERS & names or ({"src", "public"} <= names) or "app" in names or "pages" in names)
 
 
-def scan():
+def scan(paths: Optional[Iterable[Path]] = None, max_depth: int = 4):
     results = []
     seen = set()
-
-    for base in SCAN_PATHS:
-        base_path = Path(base)
+    for base in paths or default_scan_paths():
+        base_path = Path(base).expanduser().resolve()
         if not base_path.exists():
             continue
-
-        for root, dirs, files in os.walk(base_path):
+        for root, dirs, _ in os.walk(base_path):
             root_path = Path(root)
-
-            dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
-
+            dirs[:] = [directory for directory in dirs if directory not in IGNORE_DIRS]
             try:
-                rel_depth = len(root_path.relative_to(base_path).parts)
-            except Exception:
-                rel_depth = 0
-
-            if rel_depth > 4:
+                depth = len(root_path.relative_to(base_path).parts)
+            except ValueError:
+                depth = 0
+            if depth > max_depth:
                 dirs[:] = []
                 continue
-
-            if str(root_path).lower() in seen:
+            key = str(root_path).casefold()
+            if key in seen or not is_website(root_path):
                 continue
 
-            if is_website(root_path):
-                stack = detect_stack(root_path)
-                api = has_api(root_path)
-                upload_files = find_upload_endpoint(root_path)
-                deployment = detect_deployment(root_path)
+            stack = detect_stack(root_path)
+            api = has_api(root_path)
+            upload_files = find_upload_endpoint(root_path)
+            if api and upload_files:
+                recommendation = "Existing API/upload code found; inspect before adding another endpoint."
+            elif stack in {"Next.js", "Node / Express", "Astro"}:
+                recommendation = "Add or connect a protected upload API if content uploads are required."
+            else:
+                recommendation = "Use a deployment workflow or pair this frontend with a backend."
 
-                if api and upload_files:
-                    recommended = "Existing API likely available. Inspect endpoint files."
-                elif stack in ["Next.js", "Node / Express"]:
-                    recommended = "Add protected /api/upload endpoint."
-                elif stack in ["Vite / React", "React", "Static HTML", "Frontend Web App"]:
-                    recommended = "Use GitHub/Vercel content update workflow or add backend."
-                else:
-                    recommended = "Manual review needed."
-
-                results.append({
-                    "website_name": root_path.name,
-                    "path": str(root_path),
-                    "stack": stack,
-                    "has_api": api,
-                    "upload_endpoint_files": upload_files,
-                    "deployment": deployment,
-                    "recommended_integration": recommended
-                })
-
-                seen.add(str(root_path).lower())
-                dirs[:] = []
-
+            results.append({
+                "website_name": root_path.name,
+                "path": str(root_path),
+                "stack": stack,
+                "has_api": api,
+                "upload_endpoint_files": upload_files,
+                "deployment": detect_deployment(root_path),
+                "recommended_integration": recommendation,
+            })
+            seen.add(key)
+            dirs[:] = []
     return results
 
 
-def write_reports(results):
-    with open("websites_found.json", "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=2)
+def write_reports(results, output_dir: Path = Path(".")) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    json_path = output_dir / "websites_found.json"
+    report_path = output_dir / "WEBSITE_SCAN_REPORT.md"
+    json_path.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
 
-    lines = []
-    lines.append("# Website Scan Report")
-    lines.append("")
-    lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    lines.append("")
-    lines.append(f"Total websites found: {len(results)}")
-    lines.append("")
-    lines.append("| Website Name | Path | Stack | Has API? | Upload Files Found | Deployment | Recommended Integration |")
-    lines.append("|---|---|---|---|---|---|---|")
-
+    lines = [
+        "# Website Scan Report", "", f"Generated: {datetime.now().isoformat(timespec='seconds')}", "",
+        f"Total websites found: {len(results)}", "",
+        "| Website | Stack | API | Deployment | Recommended integration |",
+        "|---|---|---:|---|---|",
+    ]
     for site in results:
-        upload_files = "<br>".join(site["upload_endpoint_files"]) if site["upload_endpoint_files"] else "None"
         lines.append(
-            f"| {site['website_name']} | {site['path']} | {site['stack']} | {site['has_api']} | {upload_files} | {site['deployment']} | {site['recommended_integration']} |"
+            f"| {site['website_name']} | {site['stack']} | {site['has_api']} | "
+            f"{site['deployment']} | {site['recommended_integration']} |"
         )
-
-    with open("WEBSITE_SCAN_REPORT.md", "w", encoding="utf-8") as f:
-        f.write("\n".join(lines))
+        if site["upload_endpoint_files"]:
+            lines.append("")
+            lines.append(f"**{site['website_name']} upload-related files**")
+            for item in site["upload_endpoint_files"]:
+                lines.append(f"- `{item}`")
+            lines.append("")
+    report_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":
     found = scan()
     write_reports(found)
-
-    print("")
-    print("Website scan complete.")
-    print(f"Websites found: {len(found)}")
-    print("Created:")
-    print("- WEBSITE_SCAN_REPORT.md")
-    print("- websites_found.json")
-    print("")
-    print("Open the report with:")
-    print("notepad WEBSITE_SCAN_REPORT.md")
+    print(f"Website scan complete. Found {len(found)} project(s).")

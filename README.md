@@ -1,104 +1,91 @@
 # Website Manager
 
-A Python utility for discovering local website projects and managing upload profiles from one command-line workflow.
+Website Manager is a small Python operations utility for developers who keep several web projects on one machine. It discovers local sites, identifies their likely stack/API surface, generates an inventory report, and keeps reusable upload profiles in one CLI.
 
-## Why I built it
+## What v1 does
 
-Working across several web projects creates a simple maintenance problem: projects end up spread across different folders and it becomes difficult to see what exists, which stack each project uses and whether an upload/API path is already available.
+- Scan Desktop, Downloads, OneDrive Desktop, or custom roots for website projects.
+- Detect common stacks including Next.js, Vite/React, React, Astro, Express and static HTML.
+- Flag API/upload-related code and produce JSON + Markdown reports.
+- Maintain local upload profiles without requiring secrets in the repository.
+- Upload to a normal multipart HTTP endpoint.
+- Upload through the TK Web Studio signed-upload flow.
+- Run a local `doctor` check before uploads.
+- Support dry-run validation before any network request.
 
-Website Manager automates that first inspection step and keeps reusable upload profiles in one place.
-
-## Features
-
-- Scans common project folders automatically
-- Detects common web stacks from project files
-- Checks for API and upload-related code
-- Produces JSON inventory data and a readable Markdown report
-- Manages website upload profiles from the command line
-- Keeps local configuration separate from the public repository
-- Supports packaging as a desktop executable
-
-## Technology
-
-- Python
-- JSON configuration
-- `pathlib` and file-system automation
-- PyInstaller configuration
-
-## Project structure
-
-```text
-core/                           Core upload logic
-utils/                          Shared utilities
-examples/                       Sanitized example scan output
-main.py                         CLI entry point
-scan_websites.py                Website discovery and reporting
-config.py                       Configuration model and persistence
-config.example.json             Safe configuration template
-WebsiteManager.spec             Packaging configuration
-```
-
-## Setup
-
-The application works without a local config file by loading its built-in demonstration profiles. For persistent local profiles, copy the example first:
+## Install
 
 ```bash
-cp config.example.json config.json
+python -m venv .venv
+# Windows: .venv\\Scripts\\activate
+# macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-`config.json` is intentionally ignored by Git because it can contain local paths and credentials.
+Copy `config.example.json` to `config.json` for local profiles. `config.json`, generated scan reports and local credentials are intentionally ignored by Git.
 
-## Scanning projects
-
-Run:
+## Scan websites
 
 ```bash
-python scan_websites.py
+python main.py scan
+python main.py scan --path "C:\\Projects" --path "D:\\Client Sites"
 ```
 
-By default the scanner checks common locations under the current user's home directory, including Desktop, Downloads and OneDrive Desktop when present.
+Generated files:
 
-To provide custom scan roots, set `WEBSITE_MANAGER_SCAN_PATHS` using the operating system path separator between locations.
+- `websites_found.json`
+- `WEBSITE_SCAN_REPORT.md`
 
-The scan generates:
-
-```text
-websites_found.json
-WEBSITE_SCAN_REPORT.md
-```
-
-Both files are intentionally ignored by Git because real reports contain absolute local file paths. Sanitized examples are available in `examples/`.
-
-## CLI examples
-
-List configured profiles:
+## Manage profiles
 
 ```bash
 python main.py profile list
+python main.py profile add my-site \
+  --url https://example.com \
+  --method http_multipart \
+  --remote-path /api/upload \
+  --cred-type api_key \
+  --api-key-name X-API-KEY \
+  --api-key-env MY_SITE_API_KEY
 ```
 
-Add a profile:
+Secret values should live in environment variables. The config stores only the environment-variable names.
+
+### TK Web Studio signed uploads
 
 ```bash
-python main.py profile add my-site --url https://example.com/api/upload --method http_post
+python main.py profile add tk-web-studio \
+  --url https://tkwebstudio.company \
+  --method tkws_signed \
+  --remote-path /api/create-upload-url \
+  --customer-id-env TKWS_CUSTOMER_ID \
+  --supabase-anon-key-env SUPABASE_ANON_KEY
 ```
 
-Upload a file using a configured profile:
+Then set those environment variables locally before uploading.
+
+## Validate before uploading
 
 ```bash
-python main.py upload my-site ./content/example.txt
+python main.py doctor --show-paths
+python main.py upload tk-web-studio ./content/logo.png --dry-run
+python main.py upload tk-web-studio ./content/logo.png
 ```
 
-## What this project demonstrates
+## Tests
 
-- Python scripting and CLI design
-- File-system automation
-- Configuration management
-- Basic stack detection
-- Modular application structure
-- Handling local machine data more safely in a public repository
-- Turning a repetitive development task into a reusable utility
+```bash
+python -m unittest discover -s tests -v
+```
 
-## Status
+## Safety model
 
-Utility and portfolio project.
+- Real config files and scan output stay local.
+- Profile listing never prints secret values.
+- New profiles use environment-variable references for passwords/API keys.
+- `--dry-run` validates routing and file metadata without making a network request.
+- The TK Web Studio path requires explicit customer ID and Supabase anon-key environment variables.
+
+## Project status
+
+**v1 implementation** — usable CLI utility with scanning, profile management, upload routing, dry-run checks and unit tests.
